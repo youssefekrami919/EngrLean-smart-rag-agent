@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and local environments
+.env
+.venv/
+venv/
+ENV/
+env/
+
+# ChromaDB persistence directory
+chroma_db/
+*.chroma
+
+# Streamlit runtime and user settings
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
