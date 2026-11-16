@@ -10,6 +10,10 @@ venv/
 ENV/
 env/
 
+# ChromaDB persistence directory (built natively on host/container)
+chroma_db/
+*.chroma
+
 # Streamlit runtime and user settings
 .streamlit/secrets.toml
 .streamlit/config.toml

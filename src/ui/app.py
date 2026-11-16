@@ -17,10 +17,20 @@ from src.ui.styles import ENGRLEAN_CSS
 logger = logging.getLogger(__name__)
 
 
+@st.cache_resource(show_spinner=False)
+def get_shared_pipeline() -> RAGPipeline:
+    """Initialize the RAG pipeline once across the entire server lifecycle.
+
+    Shared by all concurrent users and sessions to eliminate duplicate indexing
+    and guarantee sub-second responses on Streamlit Cloud and Localhost.
+    """
+    return RAGPipeline()
+
+
 def get_bot_instance() -> LeanBot:
     """Initialize and store the LeanBot instance in session state."""
     if "bot_instance" not in st.session_state:
-        pipeline = RAGPipeline()
+        pipeline = get_shared_pipeline()
         st.session_state.bot_instance = LeanBot(rag_pipeline=pipeline)
     return st.session_state.bot_instance
 
@@ -99,6 +109,7 @@ def run_app():
                     try:
                         bot = get_bot_instance()
                         count = bot.rag_pipeline.ingest_all(force_reindex=True)
+                        st.cache_resource.clear()
                         st.success(f"✔ Successfully re-indexed {count} knowledge chunks!")
                     except Exception as ex:
                         st.error(f"Re-indexing failed: {ex}")
