@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.39+-FF4B4B.svg)](https://streamlit.io/)
-[![Google Gemini](https://img.shields.io/badge/Gemini-1.5%20Flash-4285F4.svg)](https://aistudio.google.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-3.8%20Flash-4285F4.svg)](https://aistudio.google.com/)
 [![ChromaDB](https://img.shields.io/badge/VectorStore-ChromaDB-green.svg)](https://www.trychroma.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Layered-orange.svg)](ARCHITECTURE.md)
 
@@ -22,7 +22,7 @@ Production-grade, API-first Retrieval-Augmented Generation (RAG) and autonomous 
 ## Key Features
 
 * **Zero Vendor Lock-in & Clean Architecture:** Pure Python codebase (`.py`) cleanly separated into `core`, `rag`, `agent`, and `ui` packages.
-* **Cost-Efficient & High-Speed:** Powered by Google's **Gemini 1.5 Flash** (1M token context window) and **`text-embedding-004`** via Google AI Studio.
+* **Cost-Efficient & Ultra-Fast:** Powered by Google's **Gemini 3.8 Flash** with Direct Context Injection (sub-second in-memory retrieval) and persistent ChromaDB storage.
 * **Native Bilingual Capability:** Automatically and fluently handles cross-lingual inquiries across Arabic and English.
 * **Strict Guardrails (Zero-Hallucination):** Strictly answers from verified corporate knowledge. Out-of-scope questions automatically trigger polite disclaimers redirecting visitors to official Phone, WhatsApp, and Email contacts.
 * **Self-Bootstrapping Vector Database:** Local ChromaDB persistent store that automatically builds itself on startup if missing.

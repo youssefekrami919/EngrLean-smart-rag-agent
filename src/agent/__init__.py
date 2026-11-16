@@ -8,9 +8,3 @@ __all__ = [
     "AbstractTool",
     "ToolRegistry",
 ]
-
-try:
-    from src.agent.bot import LeanBot
-    __all__.append("LeanBot")
-except ImportError:
-    pass

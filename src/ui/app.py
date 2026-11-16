@@ -1,4 +1,10 @@
-"""Streamlit Web Presentation Layer for EngrLean Smart RAG Agent."""
+"""Streamlit Web Presentation Layer for EngrLean Smart RAG Agent.
+
+Clean single-pass architecture:
+- Context retrieval happens ONCE per query
+- Response streams in real-time (word by word)
+- No duplicate API calls
+"""
 import logging
 import streamlit as st
 
@@ -12,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_bot_instance() -> LeanBot:
-    """Initialize and store the LeanBot and RAGPipeline instance in session state."""
+    """Initialize and store the LeanBot instance in session state."""
     if "bot_instance" not in st.session_state:
         pipeline = RAGPipeline()
         st.session_state.bot_instance = LeanBot(rag_pipeline=pipeline)
@@ -31,7 +37,7 @@ def run_app():
     # Inject EngrLean Custom Brand CSS
     st.markdown(ENGRLEAN_CSS, unsafe_allow_html=True)
 
-    # 1. Verify API Key Presence
+    # 1. Verify API Key
     api_key_valid = True
     try:
         get_gemini_api_key()
@@ -39,11 +45,11 @@ def run_app():
         api_key_valid = False
         st.error(f"⚠️ **Configuration Notice:** {e}")
         st.info(
-            "💡 **Streamlit Cloud Deployment:** Add `GEMINI_API_KEY = '...'` into "
-            "App Settings -> Secrets."
+            "💡 **Streamlit Cloud:** Add `GEMINI_API_KEY = '...'` in App Settings → Secrets.\n\n"
+            "**Local:** Add `GEMINI_API_KEY=...` in your `.env` file."
         )
 
-    # 2. Sidebar: Corporate Profile & Management
+    # 2. Sidebar
     with st.sidebar:
         st.markdown(f"### ⚙️ {settings.company.name}")
         st.markdown(
@@ -54,7 +60,6 @@ def run_app():
 
         st.markdown("---")
         st.markdown("#### 🏛️ Core Pillars")
-
         st.markdown(
             """
             <div class='sidebar-pillar-card'>
@@ -148,71 +153,80 @@ def run_app():
                     for src in msg["sources"]:
                         st.caption(f"• {src}")
 
-    # 7. Process Pending Starter Inquiries or Direct Input
+    # 7. Determine Query to Process
     user_input = st.chat_input("اكتب استفسارك هنا / Type your inquiry here...")
 
+    query_to_process = None
     if hasattr(st.session_state, "pending_query") and st.session_state.pending_query:
         query_to_process = st.session_state.pending_query
         st.session_state.pending_query = None
     elif user_input:
         query_to_process = user_input
-    else:
-        query_to_process = None
 
-    if query_to_process:
-        # Display user message immediately
-        st.session_state.messages.append({"role": "user", "content": query_to_process})
-        with st.chat_message("user"):
-            st.markdown(query_to_process)
+    if not query_to_process:
+        return
 
-        # Generate LeanBot response
-        with st.chat_message("assistant"):
-            if not api_key_valid:
-                error_reply = (
-                    "⚠️ لم يتم العثور على مفتاح API صالح. يرجى إدخال `GEMINI_API_KEY` "
-                    "في ملف `.env` محلياً أو في `Secrets` على Streamlit Cloud."
-                )
-                st.markdown(error_reply)
-                st.session_state.messages.append({"role": "assistant", "content": error_reply, "sources": []})
-            else:
-                try:
-                    bot = get_bot_instance()
-                    # Stream response directly to UI in real-time
-                    reply_stream = bot.chat_stream(query_to_process)
-                    full_reply = st.write_stream(reply_stream)
+    # 8. Display User Message
+    st.session_state.messages.append({"role": "user", "content": query_to_process})
+    with st.chat_message("user"):
+        st.markdown(query_to_process)
 
-                    # Retrieve sources for display
-                    _, matches = bot.rag_pipeline.retrieve_context(query_to_process, top_k=settings.rag.top_k)
-                    sources = list({m["metadata"].get("source", "Knowledge Base") for m in matches if "metadata" in m})
+    # 9. Generate & Stream LeanBot Response (single pass)
+    with st.chat_message("assistant"):
+        if not api_key_valid:
+            error_reply = (
+                "⚠️ لم يتم العثور على مفتاح API صالح. يرجى إدخال `GEMINI_API_KEY` "
+                "في ملف `.env` محلياً أو في `Secrets` على Streamlit Cloud."
+            )
+            st.markdown(error_reply)
+            st.session_state.messages.append({"role": "assistant", "content": error_reply, "sources": []})
+        else:
+            try:
+                bot = get_bot_instance()
 
-                    if sources:
-                        with st.expander("📚 Knowledge Sources", expanded=False):
-                            for s in sources:
-                                st.caption(f"• {s}")
+                # Single-pass: retrieve context ONCE, get sources + stream generator
+                result = bot.chat_stream_with_sources(query_to_process)
+                sources = result["sources"]
 
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": full_reply,
-                        "sources": sources,
-                    })
-                except Exception as err:
-                    logger.exception("Failed to generate response in UI.")
-                    err_str = str(err)
-                    if "429" in err_str or "quota" in err_str.lower() or "resourceexhausted" in err_str.lower():
-                        error_msg = (
-                            "⏳ **تنبيه استهلاك الحد المؤقت (Rate Limit):**\n\n"
-                            "تم تجاوز حد الطلبات المجاني المؤقت في الدقيقة الواحدة على Google AI Studio (مسموح بـ 5-15 طلباً في الدقيقة).\n\n"
-                            "👉 **الحل:** انتظر حوالي **20 ثانية** فقط ثم أعد إرسال السؤال وسيجيبك الموديل فوراً."
-                        )
-                    else:
-                        error_msg = (
-                            f"⚠️ **حدث خطأ أثناء الاتصال:**\n\n`{err_str}`\n\n"
-                            f"يرجى التأكد من اتصال الإنترنت وصلاحيات المفتاح، أو مراجعة الدعم الفني."
-                        )
-                    st.error(error_msg)
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": error_msg,
-                        "sources": [],
-                    })
+                # Stream response in real-time
+                full_reply = st.write_stream(result["stream"])
 
+                if sources:
+                    with st.expander("📚 Knowledge Sources", expanded=False):
+                        for s in sources:
+                            st.caption(f"• {s}")
+
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": full_reply,
+                    "sources": sources,
+                })
+            except Exception as err:
+                logger.exception("Failed to generate response in UI.")
+                err_str = str(err).lower()
+                if "429" in err_str or "quota" in err_str or "resourceexhausted" in err_str:
+                    error_msg = (
+                        "⏳ **تنبيه حد الطلبات المؤقت (Quota Limit):**\n\n"
+                        "تم تجاوز عدد الطلبات المتاحة في الدقيقة للحساب المجاني.\n\n"
+                        "👉 يرجى الانتظار 20 ثانية ثم إعادة المحاولة."
+                    )
+                elif any(net_err in err_str for net_err in [
+                    "failed to connect", "11001", "getaddrinfo", "wsa error",
+                    "handshake", "connectionerror", "unavailable", "timed out", "deadlineexceeded"
+                ]):
+                    error_msg = (
+                        "🌐 **انقطاع في شبكة الإنترنت أو اتصال الـ Wi-Fi:**\n\n"
+                        "تعذر الاتصال بخوادم الذكاء الاصطناعي بسبب فقدان مؤقت للاتصال بالإنترنت على جهازك.\n\n"
+                        "👉 يرجى التحقق من اتصال شبكة الـ Wi-Fi أو الراوتر، ثم إعادة إرسال السؤال."
+                    )
+                else:
+                    error_msg = (
+                        f"⚠️ **حدث خطأ أثناء المعالجة:**\n\n`{err}`\n\n"
+                        f"يرجى التأكد من اتصال الإنترنت ومراجعة الدعم الفني."
+                    )
+                st.error(error_msg)
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": error_msg,
+                    "sources": [],
+                })

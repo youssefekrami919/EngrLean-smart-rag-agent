@@ -18,7 +18,7 @@
 ### Project Vision
 The **EngrLean Smart RAG Agent (`LeanBot`)** is designed as a cost-efficient, production-grade, API-first Retrieval-Augmented Generation (RAG) and conversational agent system. Built to serve website visitors, qualify business leads, and provide accurate engineering intelligence, the architecture enforces:
 * **Zero Vendor Lock-in:** Modular interfaces abstract LLM providers, vector databases, and presentation clients.
-* **Cost Efficiency:** Powered by Google's high-context, ultra-low-latency Gemini 1.5 Flash and `text-embedding-004` (operating seamlessly within the free/low-cost tier).
+* **Cost Efficiency:** Powered by Google's high-context, ultra-low-latency Gemini 3.8 Flash with Direct Context Injection and ChromaDB persistent storage.
 * **Cross-Lingual Native Fluency:** Seamless cross-lingual understanding across English and Arabic inquiries.
 * **Strict Guardrails:** Zero-hallucination operational boundaries with automated redirection to corporate communication channels for out-of-scope inquiries.
 * **Dual-Target Deployment:** Root-level orchestrator (`main.py`) compatible with one-click Streamlit Community Cloud hosting, while cleanly isolating the core business logic for immediate transition to headless FastAPI endpoints.
@@ -54,7 +54,7 @@ flowchart TD
     subgraph Platform_Core ["Core Platform & Config (src/core/)"]
         Config["Central Config & Personas<br/>(src/core/config.py)"]
         SecretsMgr["Unified Secrets Manager<br/>(st.secrets + .env)"]
-        GeminiClient["Google AI Studio Client<br/>(Gemini 1.5 Flash)"]
+        GeminiClient["Google AI Studio Client<br/>(Gemini 3.8 Flash)"]
     end
 
     StreamlitUI --> LeanBot
@@ -85,7 +85,7 @@ flowchart TD
   * Agent metadata (`name="LeanBot"`, `role="EngrLean AI Engineering Consultant"`).
   * Brand contact fallbacks (`support_email="contact@engrlean.com"`, `whatsapp_phone="+20 100 000 0000"`).
   * RAG tuning parameters (`chunk_size=1000`, `chunk_overlap=150`, `top_k=4`).
-  * Model identifiers (`gemini-1.5-flash`, `text-embedding-004`).
+  * Model identifiers (`gemini-3.8-flash`).
 * **`secrets.py`**: Robust, dual-source credential resolver:
   * Prioritizes Streamlit Secrets (`st.secrets["GEMINI_API_KEY"]`) when executed inside Streamlit Cloud.
   * Gracefully falls back to local `.env` variables via `python-dotenv` during local development or headless CLI execution.
@@ -155,7 +155,7 @@ sequenceDiagram
     participant Bot as LeanBot Agent
     participant Retriever as RAG Retriever
     participant Chroma as ChromaDB
-    participant Gemini as Gemini 1.5 Flash
+    participant Gemini as Gemini 3.8 Flash
 
     User->>UI: Submit inquiry (Arabic or English)
     UI->>Bot: Forward message + session context

@@ -1,6 +1,11 @@
 """Utility to list all supported Gemini models for your API key."""
 import sys
+import warnings
 from pathlib import Path
+
+# Suppress deprecation warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 root_dir = Path(__file__).resolve().parent
 if str(root_dir) not in sys.path:
@@ -8,6 +13,7 @@ if str(root_dir) not in sys.path:
 
 import google.generativeai as genai
 from src.core.secrets import get_gemini_api_key
+
 
 def main():
     key = get_gemini_api_key()

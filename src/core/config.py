@@ -24,7 +24,12 @@ class AgentSettings(BaseModel):
 
 
 class ModelSettings(BaseModel):
-    llm_model: str = "gemini-3.8-flash"
+    llm_model: str = "models/gemini-flash-lite-latest"
+    fallback_models: list[str] = [
+        "models/gemini-flash-lite-latest",
+        "models/gemini-3.5-flash",
+        "models/gemini-3.1-flash-lite",
+    ]
     embedding_model: str = "models/gemini-embedding-001"
     temperature: float = 0.2
     max_output_tokens: int = 2048
