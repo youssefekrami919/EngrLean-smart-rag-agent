@@ -60,8 +60,12 @@ EngrLean engages with clients through structured engineering delivery phases:
 
 ## 4. Frequently Asked Questions (FAQ)
 
-### Who is the CEO of EngrLean?
-EngrLean was founded and is led by **Eng. Mohamed Yahia**, who spearheads the company's technical vision, engineering standards, and expansion strategy.
+### Who is the CEO and Founder of EngrLean?
+EngrLean was founded and is led by **Eng. Mohamed Yahia** (المهندس محمد يحيى), an accomplished engineering leader and technology architect.
+* **Executive Role & Vision:** Eng. Mohamed Yahia directs the strategic technology vision, engineering governance, and regional expansion of EngrLean. He champions the corporate philosophy: *"Built on engineering. Driven by technology."*
+* **Multidisciplinary Expertise:** With deep cross-functional background across classical systems engineering, smart ICT infrastructure, and modern software architectures, he bridges physical engineering rigor with agile software innovation.
+* **Lean Engineering Advocate:** A dedicated practitioner of Lean principles, he specializes in eliminating technical waste, streamlining enterprise processes, and designing resilient digital architectures that deliver verifiable operational ROI.
+* **Regional Impact:** Eng. Mohamed Yahia has led and advised on major digital transformation, enterprise systems integration, data center infrastructure, and smart building automation initiatives across Egypt and the GCC region.
 
 ### Does EngrLean provide Smart Home and Automation services?
 Yes! As part of EngrLean's **ICT & Smart Systems** division, the company is actively expanding its smart building and IoT portfolio to include luxury and enterprise-grade Smart Home automation, intelligent energy management, and unified facility control.

@@ -17,7 +17,7 @@ class LeanBot:
         self.rag_pipeline = rag_pipeline or RAGPipeline()
         self.system_instruction = build_system_instruction()
 
-    def chat(self, user_query: str) -> Dict[str, Any]:
+    def chat(self, user_query: str, chat_history: list = None) -> Dict[str, Any]:
         """Process a query and return a complete response (non-streaming)."""
         from src.core.llm import generate_chat_response
 
@@ -28,14 +28,18 @@ class LeanBot:
         try:
             context, matches = self.rag_pipeline.retrieve_context(clean_query)
             sources = self._extract_sources(matches)
-            prompt = build_user_prompt(clean_query, context)
+            prompt = build_user_prompt(clean_query, context, chat_history=chat_history)
             reply = generate_chat_response(prompt, system_instruction=self.system_instruction)
             return {"reply": reply, "sources": sources, "matches": matches}
         except Exception as e:
             return self._handle_error(e)
 
-    def chat_stream_with_sources(self, user_query: str) -> Dict[str, Any]:
+    def chat_stream_with_sources(self, user_query: str, chat_history: list = None) -> Dict[str, Any]:
         """Retrieve context ONCE, then return sources + a streaming generator.
+
+        Args:
+            user_query: The incoming question string.
+            chat_history: Optional list of previous chat messages for conversational flow.
 
         Returns:
             Dict with:
@@ -51,7 +55,7 @@ class LeanBot:
         # Single retrieval — no duplication
         context, matches = self.rag_pipeline.retrieve_context(clean_query)
         sources = self._extract_sources(matches)
-        prompt = build_user_prompt(clean_query, context)
+        prompt = build_user_prompt(clean_query, context, chat_history=chat_history)
 
         def stream_gen():
             yield from generate_chat_stream(prompt, system_instruction=self.system_instruction)

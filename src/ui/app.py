@@ -184,8 +184,11 @@ def run_app():
             try:
                 bot = get_bot_instance()
 
+                # Provide recent conversation context (excluding the message just added)
+                recent_history = st.session_state.messages[:-1] if "messages" in st.session_state else []
+
                 # Single-pass: retrieve context ONCE, get sources + stream generator
-                result = bot.chat_stream_with_sources(query_to_process)
+                result = bot.chat_stream_with_sources(query_to_process, chat_history=recent_history)
                 sources = result["sources"]
 
                 # Stream response in real-time

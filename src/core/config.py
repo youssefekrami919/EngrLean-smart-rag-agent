@@ -31,7 +31,7 @@ class ModelSettings(BaseModel):
         "models/gemini-3.1-flash-lite",
     ]
     embedding_model: str = "models/gemini-embedding-001"
-    temperature: float = 0.2
+    temperature: float = 0.5
     max_output_tokens: int = 2048
 
 
