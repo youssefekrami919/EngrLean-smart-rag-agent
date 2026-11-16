@@ -58,6 +58,10 @@ class RAGPipeline:
         try:
             from src.rag.vectorstore import VectorStore
             self._vector_store = VectorStore()
+            # Auto-bootstrap safeguard: If the store exists but is empty, index once automatically
+            if self._vector_store.count() == 0:
+                logger.info("Vector database is empty. Auto-bootstrapping from data/knowledge/...")
+                self._run_ingestion()
         except Exception as e:
             logger.warning(f"VectorStore pre-connect notice: {e}")
             self._vector_store = None
