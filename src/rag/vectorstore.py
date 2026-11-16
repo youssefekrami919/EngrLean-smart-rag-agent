@@ -13,14 +13,24 @@ logger = logging.getLogger(__name__)
 
 
 class VectorStore:
-    """Manages persistent ChromaDB vector storage and semantic querying."""
+    """Manages persistent ChromaDB vector storage and semantic querying with self-healing."""
 
     def __init__(self, chroma_dir: Path = settings.chroma_dir, collection_name: str = settings.rag.collection_name):
         self.chroma_dir = chroma_dir
         self.collection_name = collection_name
         self.chroma_dir.mkdir(parents=True, exist_ok=True)
         
-        # Initialize ChromaDB persistent client
+        try:
+            self._connect()
+        except Exception as e:
+            logger.warning(f"ChromaDB connection/schema error ({e}). Rebuilding clean store...")
+            import shutil
+            shutil.rmtree(self.chroma_dir, ignore_errors=True)
+            self.chroma_dir.mkdir(parents=True, exist_ok=True)
+            self._connect()
+
+    def _connect(self) -> None:
+        """Initialize ChromaDB client and collection."""
         self.client = chromadb.PersistentClient(
             path=str(self.chroma_dir),
             settings=ChromaSettings(anonymized_telemetry=False)
